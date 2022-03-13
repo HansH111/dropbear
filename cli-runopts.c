@@ -97,6 +97,10 @@ static void printhelp() {
 					"-V    Version\n"
 #if DEBUG_TRACE
 					"-v    verbose (compiled with DEBUG_TRACE)\n"
+#else
+#if DEBUG_LEVEL
+					"-v    verbose level (repeat to be more verbose)\n"
+#endif
 #endif
 					,DROPBEAR_VERSION, cli_opts.progname,
 #if DROPBEAR_CLI_PUBKEY_AUTH
@@ -300,9 +304,13 @@ void cli_getopts(int argc, char ** argv) {
 					next = &opts.mac_list;
 					break;
 #endif
-#if DEBUG_TRACE
+#if DEBUG_LEVEL
 				case 'v':
-					debug_trace = 1;
+#if DEBUG_TRACE
+					debug_trace=9;
+#else
+					debug_trace++;
+#endif
 					break;
 #endif
 				case 'F':
@@ -567,6 +575,24 @@ multihop_passthrough_args() {
 		int written = snprintf(ret+total, len-total, "-W %u ", opts.recv_window);
 		total += written;
 	}
+#if DEBUG_TRACE
+	if (debug_trace)
+	{
+		int written = snprintf(ret+total, len-total, "-v ");
+		total += written;
+	}
+#else
+#if DEBUG_LEVEL
+	if (debug_trace)
+	{
+		int i;
+		for (i=0; i<debug_trace; i++) {
+			int written = snprintf(ret+total, len-total, "-v ");
+			total += written;
+		}
+	}
+#endif
+#endif
 
 #if DROPBEAR_CLI_PUBKEY_AUTH
 	for (iter = cli_opts.privkeys->first; iter; iter = iter->next)
